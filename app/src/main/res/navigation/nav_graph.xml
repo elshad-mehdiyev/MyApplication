@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainFragment">
+
+    <activity
+        android:id="@+id/mapsActivity"
+        android:name="com.location.myapplication.MapsActivity"
+        android:label="activity_maps"
+        tools:layout="@layout/activity_maps" />
+    <fragment
+        android:id="@+id/showAllLocationInList"
+        android:name="com.location.myapplication.ShowAllLocationInList"
+        android:label="fragment_show_all_location_in_list"
+        tools:layout="@layout/fragment_show_all_location_in_list" />
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.location.myapplication.MainFragment"
+        android:label="fragment_main"
+        tools:layout="@layout/fragment_main" >
+        <action
+            android:id="@+id/action_mainFragment_to_mapsActivity"
+            app:destination="@id/mapsActivity" />
+        <action
+            android:id="@+id/action_mainFragment_to_showAllLocationInList"
+            app:destination="@id/showAllLocationInList" />
+    </fragment>
+</navigation>
