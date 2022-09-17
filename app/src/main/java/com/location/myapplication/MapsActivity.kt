@@ -68,17 +68,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .addOnSuccessListener {
                 it?.let {
                    val model = CurrentLocationModel(
-                       latitude = it.latitude.toString(),
+                       latitude = it.provider,
                        longitude = it.longitude.toString(),
                        accuracy = it.accuracy.toString()
                    )
                     viewModel.saveLocation(model)
+                    val baku = LatLng(it.latitude, it.longitude)
+                    mMap.addMarker(MarkerOptions().position(baku).title("Marker in Baku"))
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(baku))
                 }
             }
         // Add a marker in Sydney and move the camera
-        val sydney = LatLng(40.0, 50.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
-
     }
 }
