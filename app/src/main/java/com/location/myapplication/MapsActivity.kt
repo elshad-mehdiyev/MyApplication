@@ -43,9 +43,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        val baku = LatLng(40.0, 50.0)
-        mMap.addMarker(MarkerOptions().position(baku).title("Marker in Baku"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
+        observeData()
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -78,5 +76,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         // Add a marker in Sydney and move the camera
+    }
+    private fun observeData() {
+        viewModel.allLocation.observe(this) {
+            it?.let {
+                for (loc in it) {
+                    val baku = LatLng(loc.latitude.toDouble(), loc.longitude.toDouble())
+                    mMap.addMarker(MarkerOptions().position(baku))
+                }
+            }
+        }
     }
 }

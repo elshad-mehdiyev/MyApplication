@@ -71,7 +71,7 @@ class MainFragment : Fragment() {
         job = scope.launch {
             while(true) {
                 getLocation()
-                delay(5000)
+                delay(7000)
             }
         }
     }
