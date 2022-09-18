@@ -2,8 +2,6 @@ package com.location.myapplication
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.location.LocationListener
-import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
@@ -29,8 +27,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: LocationViewModel by viewModels()
-    private lateinit var locationManager: LocationManager
-    private lateinit var locationListener: LocationListener
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +43,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        val baku = LatLng(40.0, 50.0)
+        mMap.addMarker(MarkerOptions().position(baku).title("Marker in Baku"))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -68,14 +67,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .addOnSuccessListener {
                 it?.let {
                    val model = CurrentLocationModel(
-                       latitude = it.provider,
+                       latitude = it.latitude.toString(),
                        longitude = it.longitude.toString(),
                        accuracy = it.accuracy.toString()
                    )
                     viewModel.saveLocation(model)
                     val baku = LatLng(it.latitude, it.longitude)
                     mMap.addMarker(MarkerOptions().position(baku).title("Marker in Baku"))
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(baku))
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
                 }
             }
         // Add a marker in Sydney and move the camera
