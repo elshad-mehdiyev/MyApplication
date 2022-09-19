@@ -5,6 +5,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.os.Looper
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -13,9 +14,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.android.gms.tasks.CancellationToken
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.OnTokenCanceledListener
@@ -23,10 +22,7 @@ import com.location.myapplication.databinding.FragmentMainBinding
 import com.location.myapplication.model.CurrentLocationModel
 import com.location.myapplication.viewmodel.LocationViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 
 @AndroidEntryPoint
@@ -52,6 +48,9 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         startUpdates()
+        binding.finishJob.setOnClickListener {
+            stopUpdates()
+        }
         binding.showInMap.setOnClickListener {
             val action = MainFragmentDirections.actionMainFragmentToMapsActivity()
             findNavController().navigate(action)
@@ -70,8 +69,8 @@ class MainFragment : Fragment() {
     private fun startUpdates() {
         job = scope.launch {
             while(true) {
-                getLocation()
                 delay(5000)
+                getLocation()
             }
         }
     }
@@ -110,27 +109,28 @@ class MainFragment : Fragment() {
                 }
             }*/
         val locationRequest = LocationRequest.create().apply {
-            interval = 100
-            fastestInterval = 50
-            maxWaitTime = 100
+            interval = 5000
+            maxWaitTime = 5000
+            priority = Priority.PRIORITY_HIGH_ACCURACY
         }.priority
         fusedLocationClient.getCurrentLocation(locationRequest, object : CancellationToken() {
-            override fun onCanceledRequested(p0: OnTokenCanceledListener) = CancellationTokenSource().token
+            override fun onCanceledRequested(p0: OnTokenCanceledListener) =
+                CancellationTokenSource().token
 
             override fun isCancellationRequested() = false
         })
             .addOnSuccessListener { location: Location? ->
                 if (location == null)
-                    Toast.makeText(requireContext(), "Cannot get location.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Cannot get location.", Toast.LENGTH_SHORT)
+                        .show()
                 else {
-                   val model = CurrentLocationModel(
-                       latitude = location.latitude.toString(),
-                       longitude = location.longitude.toString(),
-                       accuracy = location.accuracy.toString()
-                   )
+                    val model = CurrentLocationModel(
+                        latitude = location.latitude.toString(),
+                        longitude = location.longitude.toString(),
+                        accuracy = location.accuracy.toString()
+                    )
                     viewModel.saveLocation(model)
                 }
-
             }
     }
 }

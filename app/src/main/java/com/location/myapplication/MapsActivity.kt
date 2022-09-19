@@ -64,12 +64,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         fusedLocationClient.lastLocation
             .addOnSuccessListener {
                 it?.let {
-                   val model = CurrentLocationModel(
-                       latitude = it.latitude.toString(),
-                       longitude = it.longitude.toString(),
-                       accuracy = it.accuracy.toString()
-                   )
-                    viewModel.saveLocation(model)
                     val baku = LatLng(it.latitude, it.longitude)
                     mMap.addMarker(MarkerOptions().position(baku).title("Marker in Baku"))
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
