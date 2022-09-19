@@ -16,7 +16,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.location.myapplication.databinding.ActivityMapsBinding
-import com.location.myapplication.model.CurrentLocationModel
 import com.location.myapplication.viewmodel.LocationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 

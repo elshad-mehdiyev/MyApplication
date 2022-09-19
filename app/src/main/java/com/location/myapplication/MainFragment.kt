@@ -5,7 +5,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.os.Looper
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -33,6 +32,10 @@ class MainFragment : Fragment() {
     private val viewModel: LocationViewModel by viewModels()
     private val scope = MainScope() // could also use an other scope such as viewModelScope if available
     private var job: Job? = null
+    private var lat1 = 0.0
+    private var lat2 = 0.0
+    private var lag1 = 0.0
+    private var lag2 = 0.0
 
 
     override fun onCreateView(
@@ -108,12 +111,8 @@ class MainFragment : Fragment() {
                         viewModel.saveLocation(model)
                 }
             }*/
-        val locationRequest = LocationRequest.create().apply {
-            interval = 5000
-            maxWaitTime = 5000
-            priority = Priority.PRIORITY_HIGH_ACCURACY
-        }.priority
-        fusedLocationClient.getCurrentLocation(locationRequest, object : CancellationToken() {
+        val priority = Priority.PRIORITY_HIGH_ACCURACY
+        fusedLocationClient.getCurrentLocation(priority, object : CancellationToken() {
             override fun onCanceledRequested(p0: OnTokenCanceledListener) =
                 CancellationTokenSource().token
 
@@ -124,12 +123,18 @@ class MainFragment : Fragment() {
                     Toast.makeText(requireContext(), "Cannot get location.", Toast.LENGTH_SHORT)
                         .show()
                 else {
-                    val model = CurrentLocationModel(
-                        latitude = location.latitude.toString(),
-                        longitude = location.longitude.toString(),
-                        accuracy = location.accuracy.toString()
-                    )
-                    viewModel.saveLocation(model)
+                    lat1 = location.latitude
+                    lag1 = location.longitude
+                    if(lat1 != lat2 && lag1 != lag2) {
+                        lat2 = lat1
+                        lag2 = lag1
+                        val model = CurrentLocationModel(
+                            latitude = location.latitude.toString(),
+                            longitude = location.longitude.toString(),
+                            accuracy = location.accuracy.toString()
+                        )
+                        viewModel.saveLocation(model)
+                    }
                 }
             }
     }
