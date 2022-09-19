@@ -125,17 +125,17 @@ class MainFragment : Fragment() {
                 else {
                     lat1 = location.latitude
                     lag1 = location.longitude
-                    if(lat1 != lat2 && lag1 != lag2) {
-                        lat2 = lat1
-                        lag2 = lag1
-                        val model = CurrentLocationModel(
-                            latitude = location.latitude.toString(),
-                            longitude = location.longitude.toString(),
-                            accuracy = location.accuracy.toString()
-                        )
-                        viewModel.saveLocation(model)
+                        if (lat1 != lat2 && lag1 != lag2) {
+                            lat2 = lat1
+                            lag2 = lag1
+                            val model = CurrentLocationModel(
+                                latitude = location.latitude.toString(),
+                                longitude = location.longitude.toString(),
+                                accuracy = location.accuracy.toString()
+                            )
+                            viewModel.saveLocation(model)
+                        }
                     }
                 }
-            }
     }
 }
