@@ -123,7 +123,7 @@ class MainFragment : Fragment() {
                     Toast.makeText(requireContext(), "Cannot get location.", Toast.LENGTH_SHORT)
                         .show()
                 } else {
-                    if(location.accuracy < 100f) {
+                    if(location.accuracy < 50f) {
                         lat1 = location.latitude
                         lag1 = location.longitude
                         if (lat1 != lat2 && lag1 != lag2) {
@@ -136,6 +136,8 @@ class MainFragment : Fragment() {
                             )
                             viewModel.saveLocation(model)
                         }
+                    } else {
+                        getLocation()
                     }
                 }
             }

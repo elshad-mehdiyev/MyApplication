@@ -2,6 +2,7 @@ package com.location.myapplication
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
@@ -14,6 +15,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
 import com.location.myapplication.databinding.ActivityMapsBinding
 import com.location.myapplication.viewmodel.LocationViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +27,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: LocationViewModel by viewModels()
+    private val polyLineList = mutableListOf<LatLng>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,7 +67,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 it?.let {
                     val baku = LatLng(it.latitude, it.longitude)
                     mMap.addMarker(MarkerOptions().position(baku).title("Marker in Baku"))
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
+                    //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
                 }
             }
         // Add a marker in Sydney and move the camera
@@ -74,9 +77,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             it?.let {
                 for (loc in it) {
                     val baku = LatLng(loc.latitude.toDouble(), loc.longitude.toDouble())
+                    polyLineList.add(baku)
                     mMap.addMarker(MarkerOptions().position(baku))
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
                 }
             }
         }
+        val polyLine = PolylineOptions()
+            .color(Color.BLUE)
+            .width(8f)
+            .addAll(polyLineList)
+        mMap.addPolyline(polyLine)
     }
 }
