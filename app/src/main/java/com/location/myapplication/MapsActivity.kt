@@ -45,13 +45,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         observeData()
-        mMap.uiSettings.isZoomControlsEnabled = true
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             // TODO: Consider calling
@@ -80,7 +76,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     val baku = LatLng(loc.latitude.toDouble(), loc.longitude.toDouble())
                     polyLineList.add(baku)
                     mMap.addMarker(MarkerOptions().position(baku))
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
+                    //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
                 }
                 val polyLine = PolylineOptions()
                     .color(Color.BLUE)
