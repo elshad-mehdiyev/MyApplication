@@ -27,7 +27,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: LocationViewModel by viewModels()
-    private val polyLineList = mutableListOf<LatLng>()
+    private var polyLineList = mutableListOf<LatLng>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,22 +67,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
                 }
             }
-        // Add a marker in Sydney and move the camera
     }
     private fun observeData() {
         viewModel.allLocation.observe(this) {
             it?.let {
+                polyLineList.clear()
                 for (loc in it) {
                     val baku = LatLng(loc.latitude.toDouble(), loc.longitude.toDouble())
                     polyLineList.add(baku)
                     mMap.addMarker(MarkerOptions().position(baku))
-                    //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
+                    val polyLine = PolylineOptions()
+                        .color(Color.BLUE)
+                        .width(8f)
+                        .addAll(polyLineList)
+                    mMap.addPolyline(polyLine)
                 }
-                val polyLine = PolylineOptions()
-                    .color(Color.BLUE)
-                    .width(8f)
-                    .addAll(polyLineList)
-                mMap.addPolyline(polyLine)
             }
         }
     }

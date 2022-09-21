@@ -40,7 +40,7 @@ class ShowAllLocationInList : Fragment() {
     private fun observe() {
         viewModel.allLocation.observe(viewLifecycleOwner) {
             it?.let {
-                adapter.locationList = it
+                adapter.locationList = it.reversed()
             }
         }
     }

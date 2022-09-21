@@ -5,6 +5,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.os.Looper
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -14,23 +15,31 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.CancellationToken
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.OnTokenCanceledListener
+import com.google.maps.android.SphericalUtil
 import com.location.myapplication.databinding.FragmentMainBinding
 import com.location.myapplication.model.CurrentLocationModel
 import com.location.myapplication.viewmodel.LocationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
+import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 
 @AndroidEntryPoint
 class MainFragment : Fragment() {
+
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallback: LocationCallback
+
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: LocationViewModel by viewModels()
-    private val scope = MainScope() // could also use an other scope such as viewModelScope if available
+    private val scope = MainScope()
     private var job: Job? = null
     private var lat1 = 0.0
     private var lat2 = 0.0
@@ -50,9 +59,10 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-        startUpdates()
+        //startUpdates()
+        getFromUpdates()
         binding.finishJob.setOnClickListener {
-            stopUpdates()
+            //stopUpdates()
         }
         binding.showInMap.setOnClickListener {
             val action = MainFragmentDirections.actionMainFragmentToMapsActivity()
@@ -68,7 +78,7 @@ class MainFragment : Fragment() {
         _binding = null
     }
 
-
+/*
     private fun startUpdates() {
         job = scope.launch {
             while(true) {
@@ -97,7 +107,7 @@ class MainFragment : Fragment() {
             // for ActivityCompat#requestPermissions for more details.
             return
         }
-        /*fusedLocationClient.lastLocation
+         fusedLocationClient.lastLocation
             .addOnSuccessListener {
                 it?.let {
                         val model = CurrentLocationModel(
@@ -107,7 +117,7 @@ class MainFragment : Fragment() {
                         )
                         viewModel.saveLocation(model)
                 }
-            }*/
+            }
         val priority = Priority.PRIORITY_HIGH_ACCURACY
         fusedLocationClient.getCurrentLocation(priority, object : CancellationToken() {
             override fun onCanceledRequested(p0: OnTokenCanceledListener) =
@@ -120,9 +130,12 @@ class MainFragment : Fragment() {
                     Toast.makeText(requireContext(), "Cannot get location.", Toast.LENGTH_SHORT)
                         .show()
                 } else {
-                    if(location.accuracy < 50f) {
+                    if(location.accuracy < 60f) {
                         lat1 = location.latitude
                         lag1 = location.longitude
+                        val lastLatLng = LatLng(lat1, lag1)
+                        val previousLatLng = LatLng(lat2, lag2)
+                        val distance = SphericalUtil.computeDistanceBetween(lastLatLng, previousLatLng).roundToInt()
                         if (lat1 != lat2 && lag1 != lag2) {
                             lat2 = lat1
                             lag2 = lag1
@@ -138,5 +151,41 @@ class MainFragment : Fragment() {
                     }
                 }
             }
+    }
+
+ */
+    private fun getFromUpdates() {
+        locationRequest = LocationRequest.create().apply {
+            interval = TimeUnit.SECONDS.toMillis(0)
+            maxWaitTime = TimeUnit.SECONDS.toMillis(5)
+            priority = Priority.PRIORITY_HIGH_ACCURACY
+        }
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                super.onLocationResult(locationResult)
+                val model = CurrentLocationModel(
+                    latitude = locationResult.lastLocation?.latitude.toString(),
+                    longitude = locationResult.lastLocation?.longitude.toString(),
+                    accuracy = locationResult.lastLocation?.accuracy.toString()
+                )
+                viewModel.saveLocation(model)
+            }
+        }
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+
     }
 }
