@@ -26,7 +26,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: LocationViewModel by viewModels()
-    var differ = 0L
+    private var differ = 0L
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

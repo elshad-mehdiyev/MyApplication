@@ -84,13 +84,12 @@ class MainFragment : Fragment() {
                         if (distance > 60) {
                             if (Build.VERSION.SDK_INT > 25) {
                                 val now = LocalDateTime.now()
-                                val model = TimeLocationData(
+                                viewModel.insertDate(TimeLocationData(
                                     date = now.toString(),
                                     locationLongitude = lastPosition.longitude.toString(),
                                     locationLatitude = lastPosition.latitude.toString(),
                                     distance = distance
-                                )
-                                viewModel.insertDate(model)
+                                ))
                             }
                             firstPosition = lastPosition
                 }
