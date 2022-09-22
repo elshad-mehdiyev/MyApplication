@@ -20,7 +20,7 @@ object AppModule {
     ): LocationDB = Room.databaseBuilder(
         context,
         LocationDB::class.java,
-        "DB_Location"
+        "DB_Location1"
     ).build()
 
     @Singleton

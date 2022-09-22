@@ -22,11 +22,12 @@ class LocationViewModel @Inject constructor(
             repo.saveCurrentLocation(location)
         }
     }
-    val allDate = repo.getAllDate()
 
     fun insertDate(timeLocationData: TimeLocationData) {
         viewModelScope.launch {
             repo.insertDate(timeLocationData)
         }
     }
+
+    val allDate = repo.getAllDate()
 }

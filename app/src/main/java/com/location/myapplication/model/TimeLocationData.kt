@@ -7,5 +7,8 @@ import androidx.room.PrimaryKey
 data class TimeLocationData(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = null,
-    val date: String
+    val date: String,
+    val locationLatitude: String,
+    val locationLongitude: String,
+    val distance: Double
 )

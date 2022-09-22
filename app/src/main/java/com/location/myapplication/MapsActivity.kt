@@ -1,11 +1,10 @@
 package com.location.myapplication
 
-import android.Manifest
-import android.content.pm.PackageManager
+
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -17,9 +16,8 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.location.myapplication.databinding.ActivityMapsBinding
 import com.location.myapplication.viewmodel.LocationViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.math.acos
-import kotlin.math.cos
-import kotlin.math.sin
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 @AndroidEntryPoint
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -28,16 +26,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: LocationViewModel by viewModels()
-    private var distance = 0.0
+    var differ = 0L
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -45,48 +42,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         observeData()
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener {
-                it?.let {
-                    val baku = LatLng(it.latitude, it.longitude)
-                    mMap.addMarker(MarkerOptions().position(baku).title("Marker in Baku"))
-                    //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
-                }
-            }
     }
     private fun observeData() {
-        viewModel.allLocation.observe(this) {
+        viewModel.allDate.observe(this) {
             it?.let {
-                for (loc in it) {
-                    val baku = LatLng(loc.latitude.toDouble(), loc.longitude.toDouble())
-                    mMap.addMarker(MarkerOptions().position(baku))
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(baku, 15f))
+                for (i in  it.indices) {
+                    if (i < it.lastIndex && Build.VERSION.SDK_INT > 25) {
+                        val startTime = LocalDateTime.parse(it[i].date)
+                        val endTime = LocalDateTime.parse(it[i + 1].date)
+                        differ = ChronoUnit.SECONDS.between(startTime, endTime)
+                    }
+                    val hours = if(differ / 3600 > 0) "${differ / 3600} saat" else ""
+                    val minutes =if((differ % 3600) / 60 > 0) "${(differ % 3600) / 60} deqiqe" else ""
+                    val second = if((differ % 3600) % 60 > 0) "${(differ % 3600) % 60} saniye" else ""
+                    val timeString = "Burada $hours $minutes $second vaxt kecirib"
+                    val myLocation = LatLng(it[i].locationLatitude.toDouble(), it[i].locationLongitude.toDouble())
+                    mMap.addMarker(MarkerOptions().position(myLocation).title(timeString))
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15f))
                 }
             }
         }
-    }
-    fun distanceInKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-        val theta = lon1 - lon2
-        var dist = sin(deg2rad(lat1)) * sin(deg2rad(lat2)) + cos(deg2rad(lat1)) * cos(deg2rad(lat2)) * cos(deg2rad(theta))
-        dist = acos(dist)
-        dist = rad2deg(dist)
-        dist *= 60 * 1.1515
-        dist *= 1.609344
-        return dist
-    }
-
-    private fun deg2rad(deg: Double): Double {
-        return deg * Math.PI / 180.0
-    }
-
-    private fun rad2deg(rad: Double): Double {
-        return rad * 180.0 / Math.PI
     }
 }

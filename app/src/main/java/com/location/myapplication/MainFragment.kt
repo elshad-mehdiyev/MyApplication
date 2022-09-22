@@ -3,6 +3,7 @@ package com.location.myapplication
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import androidx.fragment.app.Fragment
@@ -13,11 +14,14 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.SphericalUtil
 import com.location.myapplication.databinding.FragmentMainBinding
 import com.location.myapplication.model.CurrentLocationModel
+import com.location.myapplication.model.TimeLocationData
 import com.location.myapplication.viewmodel.LocationViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 
@@ -31,6 +35,7 @@ class MainFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: LocationViewModel by viewModels()
+    private var firstPosition = LatLng(0.0,0.0)
 
 
     override fun onCreateView(
@@ -61,7 +66,7 @@ class MainFragment : Fragment() {
     }
     private fun getFromUpdates() {
         locationRequest = LocationRequest.create().apply {
-            interval = TimeUnit.SECONDS.toMillis(0)
+            interval = TimeUnit.SECONDS.toMillis(5)
             maxWaitTime = TimeUnit.SECONDS.toMillis(5)
             priority = Priority.PRIORITY_HIGH_ACCURACY
         }
@@ -74,6 +79,21 @@ class MainFragment : Fragment() {
                     accuracy = locationResult.lastLocation?.accuracy.toString()
                 )
                 viewModel.saveLocation(model)
+                val lastPosition = LatLng(locationResult.lastLocation?.latitude!!,locationResult.lastLocation?.longitude!!)
+                        val distance = SphericalUtil.computeDistanceBetween(firstPosition, lastPosition)
+                        if (distance > 60) {
+                            if (Build.VERSION.SDK_INT > 25) {
+                                val now = LocalDateTime.now()
+                                val model = TimeLocationData(
+                                    date = now.toString(),
+                                    locationLongitude = lastPosition.longitude.toString(),
+                                    locationLatitude = lastPosition.latitude.toString(),
+                                    distance = distance
+                                )
+                                viewModel.insertDate(model)
+                            }
+                            firstPosition = lastPosition
+                }
             }
         }
         if (ActivityCompat.checkSelfPermission(

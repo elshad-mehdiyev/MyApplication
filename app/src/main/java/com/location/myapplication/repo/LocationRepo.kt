@@ -17,4 +17,5 @@ class LocationRepo @Inject constructor(
         dao.insertDate(timeLocationData)
     }
     fun getAllDate() = dao.getAllDate()
+
 }
