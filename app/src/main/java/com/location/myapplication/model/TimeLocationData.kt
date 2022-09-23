@@ -10,5 +10,4 @@ data class TimeLocationData(
     val date: String,
     val locationLatitude: String,
     val locationLongitude: String,
-    val distance: Double
 )
