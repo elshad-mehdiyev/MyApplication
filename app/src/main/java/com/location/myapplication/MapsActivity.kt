@@ -30,6 +30,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private val viewModel: LocationViewModel by viewModels()
     private var differ = 0L
     private var myLocation = LatLng(0.0, 0.0)
+    private var myEndLocation = LatLng(0.0, 0.0)
     private lateinit var circleOptions: CircleOptions
 
 
@@ -67,8 +68,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                             mMap.addMarker(MarkerOptions().position(myLocation).title(timeString))
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15f))
                         if(differ > 900) {
+                            myEndLocation = LatLng(
+                                it[i].locationLatitude.toDouble(),
+                                it[i].locationLongitude.toDouble()
+                            )
+                            val midLatitude = (myLocation.latitude + myEndLocation.latitude) / 2
+                            val midLongitude = (myLocation.longitude + myEndLocation.longitude) / 2
+                            val midLocation = LatLng(midLatitude, midLongitude)
+                            mMap.addMarker(MarkerOptions().position(midLocation).title(timeString))
                             circleOptions = CircleOptions()
-                                .center(myLocation)
+                                .center(midLocation)
                                 .radius(60.0)
                                 .strokeColor(Color.BLACK)
                                 .fillColor(Color.CYAN)
@@ -76,21 +85,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                             mMap.addCircle(circleOptions)
                         }
                         if(i == it.lastIndex) {
-                            myLocation = LatLng(
+                            myEndLocation = LatLng(
                                 it[i].locationLatitude.toDouble(),
                                 it[i].locationLongitude.toDouble()
                             )
-                            mMap.addMarker(MarkerOptions().position(myLocation))
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15f))
-                            if(differ > 900) {
-                                circleOptions = CircleOptions()
-                                    .center(myLocation)
-                                    .radius(60.0)
-                                    .strokeColor(Color.BLACK)
-                                    .fillColor(Color.CYAN)
-                                    .strokeWidth(2f)
-                                mMap.addCircle(circleOptions)
-                            }
+                            mMap.addMarker(MarkerOptions().position(myEndLocation))
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myEndLocation, 15f))
                         }
                     }
                 }

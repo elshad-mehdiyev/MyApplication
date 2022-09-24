@@ -1,11 +1,17 @@
 package com.location.myapplication
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Looper
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.*
@@ -24,13 +30,37 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var sensorManager: SensorManager
+    private var magneticFieldSensor: Sensor? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+       /* sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+
+        if (magneticFieldSensor != null) {
+            sensorManager.registerListener(sensorListener, magneticFieldSensor, SensorManager.SENSOR_DELAY_UI)
+        }*/
+
+
         getFromUpdates()
     }
+   /* private var sensorListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent?) {
+            if (event?.sensor?.type == Sensor.TYPE_MAGNETIC_FIELD) {
+                Log.v("tag", "${event.values[0]}")
+            }
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+            TODO("Not yet implemented")
+        }
+
+    }*/
     private fun getFromUpdates() {
         locationRequest = LocationRequest.create().apply {
             interval = 5000
