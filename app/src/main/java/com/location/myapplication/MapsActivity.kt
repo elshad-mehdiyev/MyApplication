@@ -66,20 +66,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                             )
                             mMap.addMarker(MarkerOptions().position(myLocation).title(timeString))
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15f))
-                        circleOptions = CircleOptions()
-                            .center(myLocation)
-                            .radius(60.0)
-                            .strokeColor(Color.BLACK)
-                            .fillColor(Color.CYAN)
-                            .strokeWidth(2f)
-                        mMap.addCircle(circleOptions)
-                        if(i == it.lastIndex) {
-                            myLocation = LatLng(
-                                it[i].locationLatitude.toDouble(),
-                                it[i].locationLongitude.toDouble()
-                            )
-                            mMap.addMarker(MarkerOptions().position(myLocation))
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15f))
+                        if(differ > 900) {
                             circleOptions = CircleOptions()
                                 .center(myLocation)
                                 .radius(60.0)
@@ -87,6 +74,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                 .fillColor(Color.CYAN)
                                 .strokeWidth(2f)
                             mMap.addCircle(circleOptions)
+                        }
+                        if(i == it.lastIndex) {
+                            myLocation = LatLng(
+                                it[i].locationLatitude.toDouble(),
+                                it[i].locationLongitude.toDouble()
+                            )
+                            mMap.addMarker(MarkerOptions().position(myLocation))
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15f))
+                            if(differ > 900) {
+                                circleOptions = CircleOptions()
+                                    .center(myLocation)
+                                    .radius(60.0)
+                                    .strokeColor(Color.BLACK)
+                                    .fillColor(Color.CYAN)
+                                    .strokeWidth(2f)
+                                mMap.addCircle(circleOptions)
+                            }
                         }
                     }
                 }

@@ -42,22 +42,24 @@ class MainActivity : AppCompatActivity() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
-                val model = CurrentLocationModel(
-                    latitude = locationResult.lastLocation?.latitude.toString(),
-                    longitude = locationResult.lastLocation?.longitude.toString(),
-                    accuracy = locationResult.lastLocation?.accuracy.toString()
-                )
-                viewModel.saveLocation(model)
-                val lastPosition = LatLng(locationResult.lastLocation?.latitude!!,locationResult.lastLocation?.longitude!!)
-                if (Build.VERSION.SDK_INT > 25) {
-                    val now = LocalDateTime.now()
-                    viewModel.insertDate(
-                        TimeLocationData(
-                        date = now.toString(),
-                        locationLongitude = lastPosition.longitude.toString(),
-                        locationLatitude = lastPosition.latitude.toString(),
+                if (locationResult.lastLocation != null) {
+                    val model = CurrentLocationModel(
+                        latitude = locationResult.lastLocation?.latitude.toString(),
+                        longitude = locationResult.lastLocation?.longitude.toString(),
+                        accuracy = locationResult.lastLocation?.accuracy.toString()
                     )
-                    )
+                    viewModel.saveLocation(model)
+                    val lastPosition = LatLng(locationResult.lastLocation?.latitude!!,locationResult.lastLocation?.longitude!!)
+                    if (Build.VERSION.SDK_INT > 25 && locationResult.lastLocation!!.accuracy < 60f) {
+                        val now = LocalDateTime.now()
+                        viewModel.insertDate(
+                            TimeLocationData(
+                            date = now.toString(),
+                            locationLongitude = lastPosition.longitude.toString(),
+                            locationLatitude = lastPosition.latitude.toString()
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -75,6 +77,5 @@ class MainActivity : AppCompatActivity() {
             return
         }
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
-
     }
 }
