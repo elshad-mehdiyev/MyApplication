@@ -1,11 +1,15 @@
 package com.location.myapplication
 
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.location.Location
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -15,7 +19,9 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
 import com.location.myapplication.databinding.ActivityMapsBinding
+import com.location.myapplication.model.TimeLocationData
 import com.location.myapplication.viewmodel.LocationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.time.LocalDateTime
@@ -25,6 +31,7 @@ import java.time.temporal.ChronoUnit
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
+    var polylineOptions = PolylineOptions()
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: LocationViewModel by viewModels()
@@ -46,7 +53,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+        mMap.isMyLocationEnabled = true
         observeData()
+    }
+    private fun addLocationToRoute(locations: TimeLocationData) {
+        val originalLatLngList = polylineOptions.points
+        val latLngList = LatLng(locations.locationLatitude.toDouble(), locations.locationLongitude.toDouble())
+        originalLatLngList.add(latLngList)
+        mMap.addPolyline(polylineOptions)
     }
     private fun observeData() {
         viewModel.allDate.observe(this) {
@@ -54,6 +81,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 mMap.clear()
                 for (i in  it.indices) {
                     if (i > 0 && Build.VERSION.SDK_INT > 25) {
+                        //addLocationToRoute(it[i])
                         val startTime = LocalDateTime.parse(it[i - 1].date)
                         val endTime = LocalDateTime.parse(it[i].date)
                         differ = ChronoUnit.SECONDS.between(startTime, endTime)
