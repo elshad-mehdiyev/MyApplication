@@ -3,6 +3,7 @@ package com.location.myapplication
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.hardware.GeomagneticField
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -22,16 +23,26 @@ import com.location.myapplication.model.TimeLocationData
 import com.location.myapplication.viewmodel.LocationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.time.LocalDateTime
+import kotlin.math.abs
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity()  {
     private lateinit var binding: ActivityMainBinding
     private val  viewModel: LocationViewModel by viewModels()
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var sensorManager: SensorManager
-    private var magneticFieldSensor: Sensor? = null
+   /* private lateinit var sensorManager: SensorManager
+    private lateinit var sensorMagnetic: Sensor
+    private lateinit var sensorAccelerometer: Sensor
+    private var gravity = FloatArray(3)
+    private var geoMagnetic = FloatArray(3)
+    private var orientation = FloatArray(3)
+    private var rotationMatrix = FloatArray(9)
+    private var degree1 = -50f
+    private var degree2 = 0f
+    var differOfDegrees = 0.0*/
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,26 +50,42 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-       /* sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
-
-        if (magneticFieldSensor != null) {
-            sensorManager.registerListener(sensorListener, magneticFieldSensor, SensorManager.SENSOR_DELAY_UI)
-        }*/
-
-
         getFromUpdates()
+        //setUpSensor()
     }
-   /* private var sensorListener = object : SensorEventListener {
-        override fun onSensorChanged(event: SensorEvent?) {
-            if (event?.sensor?.type == Sensor.TYPE_MAGNETIC_FIELD) {
-                Log.v("tag", "${event.values[0]}")
-            }
-        }
+  /*  private fun setUpSensor() {
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        sensorAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        sensorMagnetic = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
-        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-            TODO("Not yet implemented")
+        val sensorEventListener = object: SensorEventListener{
+            override fun onSensorChanged(p0: SensorEvent?) {
+                p0?.let {
+                    if (p0.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                        gravity = p0.values
+                        SensorManager.getRotationMatrix(rotationMatrix, null, gravity, geoMagnetic)
+                        SensorManager.getOrientation(rotationMatrix, orientation)
+                    }
+                    if (p0.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+                        geoMagnetic = p0.values
+                        SensorManager.getRotationMatrix(rotationMatrix, null, gravity, geoMagnetic)
+                        SensorManager.getOrientation(rotationMatrix, orientation)
+                    }
+                    degree1 = orientation[0]
+                    if(abs(degree1 * (180 / 3.14159) - degree2 * (180 / 3.14159)) > 45) {
+                        differOfDegrees = abs(degree1 * (180 / 3.14159) - degree2 * (180 / 3.14159))
+                        degree2 = degree1
+                    }
+                }
+            }
+
+            override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
+                return
+            }
+
         }
+        sensorManager.registerListener(sensorEventListener, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+        sensorManager.registerListener(sensorEventListener, sensorMagnetic, SensorManager.SENSOR_DELAY_NORMAL)
 
     }*/
     private fun getFromUpdates() {
