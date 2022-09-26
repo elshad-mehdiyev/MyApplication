@@ -18,4 +18,6 @@ class LocationRepo @Inject constructor(
     }
     fun getAllDate() = dao.getAllDate()
 
+    fun getMarkerLocations() = dao.getMarkerLocations()
+
 }

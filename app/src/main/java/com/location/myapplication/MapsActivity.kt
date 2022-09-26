@@ -4,7 +4,6 @@ package com.location.myapplication
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.location.Location
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -31,7 +30,6 @@ import java.time.temporal.ChronoUnit
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
-    var polylineOptions = PolylineOptions()
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: LocationViewModel by viewModels()
@@ -39,6 +37,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var myLocation = LatLng(0.0, 0.0)
     private var myEndLocation = LatLng(0.0, 0.0)
     private lateinit var circleOptions: CircleOptions
+    private var first = LatLng(0.0, 0.0)
+    private var timeString = ""
+    private var pathPoints = mutableListOf<LatLng>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,56 +70,62 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.isMyLocationEnabled = true
         observeData()
     }
-    private fun addLocationToRoute(locations: TimeLocationData) {
+    private fun addLocationToRoute(locations: List<TimeLocationData>) {
+        val polylineOptions = PolylineOptions()
+        mMap.clear()
         val originalLatLngList = polylineOptions.points
-        val latLngList = LatLng(locations.locationLatitude.toDouble(), locations.locationLongitude.toDouble())
-        originalLatLngList.add(latLngList)
+        val latLngList = locations.map {
+            LatLng(it.locationLatitude.toDouble(), it.locationLongitude.toDouble())}
+        originalLatLngList.addAll(latLngList)
         mMap.addPolyline(polylineOptions)
     }
     private fun observeData() {
         viewModel.allDate.observe(this) {
             it?.let {
-                mMap.clear()
-                for (i in  it.indices) {
-                    if (i > 0 && Build.VERSION.SDK_INT > 25) {
-                        //addLocationToRoute(it[i])
-                        val startTime = LocalDateTime.parse(it[i - 1].date)
-                        val endTime = LocalDateTime.parse(it[i].date)
-                        differ = ChronoUnit.SECONDS.between(startTime, endTime)
-                        val hours = if(differ / 3600 > 0) "${differ / 3600} saat" else ""
-                        val minutes =if((differ % 3600) / 60 > 0) "${(differ % 3600) / 60} deqiqe" else ""
-                        val second = if((differ % 3600) % 60 > 0) "${(differ % 3600) % 60} saniye" else ""
-                        val timeString = "Burada $hours $minutes $second vaxt kecirib"
+                addLocationToRoute(it)
+            }
+            viewModel.allMarkerLocation.observe(this) { all ->
+                all?.let {
+                    for (i in  all.indices) {
+                        if (i > 0 && Build.VERSION.SDK_INT > 25) {
+                            val startTime = LocalDateTime.parse(all[i - 1].date)
+                            val endTime = LocalDateTime.parse(all[i].date)
+                            differ = ChronoUnit.SECONDS.between(startTime, endTime)
+                            val hours = if(differ / 3600 > 0) "${differ / 3600} saat" else ""
+                            val minutes =if((differ % 3600) / 60 > 0) "${(differ % 3600) / 60} deqiqe" else ""
+                            val second = if((differ % 3600) % 60 > 0) "${(differ % 3600) % 60} saniye" else ""
+                            timeString = "Burada $hours $minutes $second vaxt kecirib"
                             myLocation = LatLng(
-                                it[i - 1].locationLatitude.toDouble(),
-                                it[i - 1].locationLongitude.toDouble()
+                                all[i - 1].locationLatitude.toDouble(),
+                                all[i - 1].locationLongitude.toDouble()
                             )
-                            mMap.addMarker(MarkerOptions().position(myLocation).title(timeString))
+                            mMap.addMarker(MarkerOptions().position(myLocation))
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15f))
-                        if(differ > 900) {
-                            myEndLocation = LatLng(
-                                it[i].locationLatitude.toDouble(),
-                                it[i].locationLongitude.toDouble()
-                            )
-                            val midLatitude = (myLocation.latitude + myEndLocation.latitude) / 2
-                            val midLongitude = (myLocation.longitude + myEndLocation.longitude) / 2
-                            val midLocation = LatLng(midLatitude, midLongitude)
-                            mMap.addMarker(MarkerOptions().position(midLocation).title(timeString))
-                            circleOptions = CircleOptions()
-                                .center(midLocation)
-                                .radius(60.0)
-                                .strokeColor(Color.BLACK)
-                                .fillColor(Color.CYAN)
-                                .strokeWidth(2f)
-                            mMap.addCircle(circleOptions)
-                        }
-                        if(i == it.lastIndex) {
-                            myEndLocation = LatLng(
-                                it[i].locationLatitude.toDouble(),
-                                it[i].locationLongitude.toDouble()
-                            )
-                            mMap.addMarker(MarkerOptions().position(myEndLocation))
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myEndLocation, 15f))
+                            if(differ > 900) {
+                                myEndLocation = LatLng(
+                                    all[i].locationLatitude.toDouble(),
+                                    all[i].locationLongitude.toDouble()
+                                )
+                                val midLatitude = (myLocation.latitude + myEndLocation.latitude) / 2
+                                val midLongitude = (myLocation.longitude + myEndLocation.longitude) / 2
+                                val midLocation = LatLng(midLatitude, midLongitude)
+                                mMap.addMarker(MarkerOptions().position(midLocation).title(timeString))
+                                circleOptions = CircleOptions()
+                                    .center(midLocation)
+                                    .radius(60.0)
+                                    .strokeColor(Color.BLACK)
+                                    .fillColor(Color.CYAN)
+                                    .strokeWidth(2f)
+                                mMap.addCircle(circleOptions)
+                            }
+                            if(i == all.lastIndex) {
+                                myEndLocation = LatLng(
+                                    all[i].locationLatitude.toDouble(),
+                                    all[i].locationLongitude.toDouble()
+                                )
+                                mMap.addMarker(MarkerOptions().position(myEndLocation))
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myEndLocation, 15f))
+                            }
                         }
                     }
                 }

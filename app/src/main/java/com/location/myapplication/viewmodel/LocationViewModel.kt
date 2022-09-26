@@ -30,4 +30,6 @@ class LocationViewModel @Inject constructor(
     }
 
     val allDate = repo.getAllDate()
+
+    val allMarkerLocation = repo.getMarkerLocations()
 }

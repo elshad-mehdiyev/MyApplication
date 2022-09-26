@@ -17,4 +17,7 @@ interface LocationDao {
     suspend fun insertDate(timeLocationData: TimeLocationData)
     @Query("SELECT * FROM TimeLocationData")
     fun getAllDate(): LiveData<List<TimeLocationData>>
+    @Query("SELECT * FROM TimeLocationData WHERE type = 2")
+    fun getMarkerLocations(): LiveData<List<TimeLocationData>>
+
 }

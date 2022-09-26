@@ -17,6 +17,7 @@ import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.SphericalUtil
 import com.location.myapplication.databinding.ActivityMainBinding
 import com.location.myapplication.model.CurrentLocationModel
 import com.location.myapplication.model.TimeLocationData
@@ -42,6 +43,10 @@ class MainActivity : AppCompatActivity()  {
     private var degree1 = -50f
     private var degree2 = 0f
     var differOfDegrees = 0.0*/
+
+    private var first = LatLng(0.0, 0.0)
+    private var type = 1
+
 
 
 
@@ -90,10 +95,10 @@ class MainActivity : AppCompatActivity()  {
     }*/
     private fun getFromUpdates() {
         locationRequest = LocationRequest.create().apply {
-            interval = 5000
-            maxWaitTime = 8000
-            fastestInterval = 5000
-            smallestDisplacement = 120f
+            interval = 500
+            maxWaitTime = 800
+            fastestInterval = 500
+            smallestDisplacement = 2f
             priority = Priority.PRIORITY_HIGH_ACCURACY
         }
         locationCallback = object : LocationCallback() {
@@ -106,6 +111,13 @@ class MainActivity : AppCompatActivity()  {
                         accuracy = locationResult.lastLocation?.accuracy.toString()
                     )
                     viewModel.saveLocation(model)
+                    val end = LatLng(locationResult.lastLocation!!.latitude, locationResult.lastLocation!!.longitude)
+                    if(SphericalUtil.computeDistanceBetween(first, end) >= 120) {
+                        first = end
+                        type = 2
+                    } else {
+                        type = 1
+                    }
                     val lastPosition = LatLng(locationResult.lastLocation?.latitude!!,locationResult.lastLocation?.longitude!!)
                     if (Build.VERSION.SDK_INT > 25 && locationResult.lastLocation!!.accuracy < 60f) {
                         val now = LocalDateTime.now()
@@ -113,7 +125,8 @@ class MainActivity : AppCompatActivity()  {
                             TimeLocationData(
                             date = now.toString(),
                             locationLongitude = lastPosition.longitude.toString(),
-                            locationLatitude = lastPosition.latitude.toString()
+                            locationLatitude = lastPosition.latitude.toString(),
+                            type = type.toString()
                             )
                         )
                     }
