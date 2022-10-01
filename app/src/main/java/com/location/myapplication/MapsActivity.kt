@@ -2,23 +2,26 @@ package com.location.myapplication
 
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CircleOptions
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.*
 import com.location.myapplication.databinding.ActivityMapsBinding
 import com.location.myapplication.model.TimeLocationData
 import com.location.myapplication.viewmodel.LocationViewModel
@@ -37,10 +40,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var myLocation = LatLng(0.0, 0.0)
     private var myEndLocation = LatLng(0.0, 0.0)
     private lateinit var circleOptions: CircleOptions
-    private var first = LatLng(0.0, 0.0)
     private var timeString = ""
-    private var pathPoints = mutableListOf<LatLng>()
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,24 +99,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                 all[i - 1].locationLatitude.toDouble(),
                                 all[i - 1].locationLongitude.toDouble()
                             )
-                            mMap.addMarker(MarkerOptions().position(myLocation))
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15f))
                             if(differ > 900) {
-                                myEndLocation = LatLng(
-                                    all[i].locationLatitude.toDouble(),
-                                    all[i].locationLongitude.toDouble()
+                                myLocation = LatLng(
+                                    all[i - 1].locationLatitude.toDouble(),
+                                    all[i - 1].locationLongitude.toDouble()
                                 )
-                                val midLatitude = (myLocation.latitude + myEndLocation.latitude) / 2
-                                val midLongitude = (myLocation.longitude + myEndLocation.longitude) / 2
-                                val midLocation = LatLng(midLatitude, midLongitude)
-                                mMap.addMarker(MarkerOptions().position(midLocation).title(timeString))
+                                mMap.addMarker(MarkerOptions().position(myLocation).title(timeString))
                                 circleOptions = CircleOptions()
-                                    .center(midLocation)
+                                    .center(myLocation)
                                     .radius(60.0)
                                     .strokeColor(Color.BLACK)
                                     .fillColor(Color.CYAN)
                                     .strokeWidth(2f)
                                 mMap.addCircle(circleOptions)
+                            } else {
+                                mMap.addMarker(MarkerOptions().position(myLocation))
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15f))
                             }
                             if(i == all.lastIndex) {
                                 myEndLocation = LatLng(
@@ -130,6 +128,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     }
                 }
             }
+        }
+    }
+    private fun bitmapDescriptorFromVector(context: Context, vectorResId: Int): BitmapDescriptor? {
+        return ContextCompat.getDrawable(context, vectorResId)?.run {
+            setBounds(0, 0, intrinsicWidth, intrinsicHeight)
+            val bitmap = Bitmap.createBitmap(intrinsicWidth, intrinsicHeight, Bitmap.Config.ARGB_8888)
+            draw(Canvas(bitmap))
+            BitmapDescriptorFactory.fromBitmap(bitmap)
         }
     }
 }

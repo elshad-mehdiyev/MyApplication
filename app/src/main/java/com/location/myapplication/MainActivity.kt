@@ -95,10 +95,10 @@ class MainActivity : AppCompatActivity()  {
     }*/
     private fun getFromUpdates() {
         locationRequest = LocationRequest.create().apply {
-            interval = 500
-            maxWaitTime = 800
-            fastestInterval = 500
-            smallestDisplacement = 2f
+            interval = 1000
+            maxWaitTime = 1500
+            fastestInterval = 1000
+            smallestDisplacement = 15f
             priority = Priority.PRIORITY_HIGH_ACCURACY
         }
         locationCallback = object : LocationCallback() {
