@@ -8,6 +8,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -15,10 +16,12 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.maps.android.ui.IconGenerator
 import com.location.myapplication.databinding.ActivityMapsBinding
 import com.location.myapplication.model.TimeLocationData
 import com.location.myapplication.viewmodel.LocationViewModel
@@ -40,6 +43,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var first = LatLng(0.0, 0.0)
     private var timeString = ""
     private var pathPoints = mutableListOf<LatLng>()
+    private lateinit var iconFactory: IconGenerator
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +51,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        iconFactory = IconGenerator(this)
+        iconFactory.setTextAppearance(R.style.myStyleText)
+        iconFactory.setColor(Color.RED)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
@@ -88,6 +95,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 all?.let {
                     for (i in  all.indices) {
                         if (i > 0 && Build.VERSION.SDK_INT > 25) {
+
                             val startTime = LocalDateTime.parse(all[i - 1].date)
                             val endTime = LocalDateTime.parse(all[i].date)
                             differ = ChronoUnit.SECONDS.between(startTime, endTime)
@@ -99,7 +107,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                 all[i - 1].locationLatitude.toDouble(),
                                 all[i - 1].locationLongitude.toDouble()
                             )
-                            mMap.addMarker(MarkerOptions().position(myLocation))
+                            mMap.addMarker(MarkerOptions().position(myLocation)
+                                .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon("$i"))))
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15f))
                             if(differ > 900) {
                                 myEndLocation = LatLng(
@@ -109,7 +118,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                 val midLatitude = (myLocation.latitude + myEndLocation.latitude) / 2
                                 val midLongitude = (myLocation.longitude + myEndLocation.longitude) / 2
                                 val midLocation = LatLng(midLatitude, midLongitude)
-                                mMap.addMarker(MarkerOptions().position(midLocation).title(timeString))
+                                mMap.addMarker(MarkerOptions().position(midLocation).title(timeString)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon("$i"))))
                                 circleOptions = CircleOptions()
                                     .center(midLocation)
                                     .radius(60.0)
@@ -117,13 +127,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                     .fillColor(Color.CYAN)
                                     .strokeWidth(2f)
                                 mMap.addCircle(circleOptions)
+                            } else {
+                                myLocation = LatLng(
+                                    all[i - 1].locationLatitude.toDouble(),
+                                    all[i - 1].locationLongitude.toDouble()
+                                )
+                                mMap.addMarker(MarkerOptions().position(myLocation)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon("$i"))))
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15f))
                             }
                             if(i == all.lastIndex) {
                                 myEndLocation = LatLng(
                                     all[i].locationLatitude.toDouble(),
                                     all[i].locationLongitude.toDouble()
                                 )
-                                mMap.addMarker(MarkerOptions().position(myEndLocation))
+                                mMap.addMarker(MarkerOptions().position(myEndLocation)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon("$i"))))
                                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myEndLocation, 15f))
                             }
                         }
